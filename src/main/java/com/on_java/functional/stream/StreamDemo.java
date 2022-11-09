@@ -1,8 +1,10 @@
 package com.on_java.functional.stream;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
+import java.util.function.BinaryOperator;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * Created by Kerwinnli.
@@ -56,7 +58,78 @@ public class StreamDemo {
 //            }
 //            // skip从列表开始往后跳过n个元素
 //        }).skip(2).limit(2).forEach(System.out::println);
-        testFlatMap();
+//        testFlatMap();
+//        testMinAndMax();
+//        testCollect();
+//        testAnyMatch();
+//        testAllMatch();
+//        testFindAny();
+//        findFirst();
+        testReduce();
+    }
+
+
+    public static void testReduce() {
+//        Integer sum = getAuthors().stream().distinct().map(e -> e.getAge()).reduce(0, new BinaryOperator<Integer>() {
+//            @Override
+//            public Integer apply(Integer integer, Integer integer2) {
+//                return integer + integer2;
+//            }
+//        });
+//        System.out.println(sum);
+//        Integer max = getAuthors().stream().map(e -> e.getAge()).reduce(0, new BinaryOperator<Integer>() {
+//            @Override
+//            public Integer apply(Integer integer, Integer integer2) {
+//                return integer > integer2 ? integer : integer2;
+//            }
+//        });
+//        System.out.println(max);
+        getAuthors().stream().map(e -> e.getAge()).reduce(new BinaryOperator<Integer>() {
+            @Override
+            public Integer apply(Integer integer, Integer integer2) {
+                return Math.min(integer, integer2);
+            }
+        }).ifPresent(System.out::println);
+    }
+
+    public static void findFirst() {
+        boolean present = getAuthors().stream().findFirst().isPresent();
+        System.out.println(present);
+    }
+
+    public static void testFindAny() {
+        boolean present = getAuthors().stream().filter(e -> e.getAge() > 18).findAny().isPresent();
+        System.out.println(present);
+    }
+
+    public static void testNoneMatch() {
+        boolean match = getAuthors().stream().noneMatch(new Predicate<Author>() {
+            @Override
+            public boolean test(Author author) {
+                return author.getAge() < 100;
+            }
+        });
+        System.out.println(match);
+    }
+
+    public static void testAllMatch() {
+        boolean match = getAuthors().stream().allMatch(new Predicate<Author>() {
+            @Override
+            public boolean test(Author author) {
+                return author.getAge() > 1;
+            }
+        });
+        System.out.println(match);
+    }
+
+    public static void testAnyMatch() {
+        boolean match = getAuthors().stream().anyMatch(new Predicate<Author>() {
+            @Override
+            public boolean test(Author author) {
+                return author.getAge() >= 29;
+            }
+        });
+        System.out.println(match);
     }
 
     public static void testFlatMap() {
@@ -64,5 +137,32 @@ public class StreamDemo {
         long l = getAuthors().stream().flatMap(e -> e.getBooks().stream()).distinct().flatMap(book -> Arrays.stream(book.getCategory().split(","))).distinct()
                 .count();
         System.out.println(l);
+    }
+
+    public static void testMinAndMax() {
+        getAuthors().stream().flatMap(e -> e.getBooks().stream()).map(e -> e.getScore()).max(new Comparator<Double>() {
+            @Override
+            public int compare(Double o1, Double o2) {
+                return (int) (o1 - o2);
+            }
+        }).stream().limit(1).forEach(System.out::println);
+    }
+
+
+    public static void testCollect() {
+        List<String> names = getAuthors().stream().map(e -> e.getName()).distinct().collect(Collectors.toList());
+        System.out.println(names);
+        Map<String, List<Book>> map = getAuthors().stream().distinct().collect(Collectors.toMap(new Function<Author, String>() {
+            @Override
+            public String apply(Author author) {
+                return author.getName();
+            }
+        }, new Function<Author, List<Book>>() {
+            @Override
+            public List<Book> apply(Author author) {
+                return author.getBooks();
+            }
+        }));
+        System.out.println(map);
     }
 }
